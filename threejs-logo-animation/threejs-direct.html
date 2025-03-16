@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Three.js Direct Logo</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        
+        #canvas-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            color: #333;
+            text-align: center;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+        
+        .controls button {
+            margin: 5px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    <div class="loading">Creating 3D Logo...</div>
+    
+    <div class="controls">
+        <button id="rotate-btn">Toggle Rotation</button>
+        <button id="color-btn">Change Color</button>
+    </div>
+    
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.132.2/build/three.module.js';
+        import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.132.2/examples/jsm/controls/OrbitControls.js';
+        
+        // Scene setup
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+        
+        // Camera setup
+        camera.position.z = 200;
+        
+        // Controls
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+        
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+        scene.add(ambientLight);
+        
+        const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+        directionalLight.position.set(0, 1, 1);
+        scene.add(directionalLight);
+        
+        // Logo group
+        const logoGroup = new THREE.Group();
+        scene.add(logoGroup);
+        
+        // Create logo directly
+        function createLogo() {
+            // Main body shape
+            const bodyGeometry = new THREE.Shape();
+            
+            // Approximate the Cline logo shape with a rounded rectangle
+            const width = 100;
+            const height = 120;
+            const radius = 30;
+            
+            bodyGeometry.moveTo(-width/2 + radius, -height/2);
+            bodyGeometry.lineTo(width/2 - radius, -height/2);
+            bodyGeometry.quadraticCurveTo(width/2, -height/2, width/2, -height/2 + radius);
+            bodyGeometry.lineTo(width/2, height/2 - radius);
+            bodyGeometry.quadraticCurveTo(width/2, height/2, width/2 - radius, height/2);
+            bodyGeometry.lineTo(-width/2 + radius, height/2);
+            bodyGeometry.quadraticCurveTo(-width/2, height/2, -width/2, height/2 - radius);
+            bodyGeometry.lineTo(-width/2, -height/2 + radius);
+            bodyGeometry.quadraticCurveTo(-width/2, -height/2, -width/2 + radius, -height/2);
+            
+            // Create the 3D geometry
+            const extrudeSettings = {
+                depth: 10,
+                bevelEnabled: true,
+                bevelThickness: 2,
+                bevelSize: 1,
+                bevelSegments: 3
+            };
+            
+            const bodyExtrudeGeometry = new THREE.ExtrudeGeometry(bodyGeometry, extrudeSettings);
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                side: THREE.DoubleSide
+            });
+            
+            const bodyMesh = new THREE.Mesh(bodyExtrudeGeometry, bodyMaterial);
+            logoGroup.add(bodyMesh);
+            
+            // Create the "eyes" (two cylinders)
+            const leftEyeGeometry = new THREE.CylinderGeometry(10, 10, 40, 32);
+            const rightEyeGeometry = new THREE.CylinderGeometry(10, 10, 40, 32);
+            
+            const eyeMaterial = new THREE.MeshStandardMaterial({
+                color: 0xffffff,
+                side: THREE.DoubleSide
+            });
+            
+            const leftEye = new THREE.Mesh(leftEyeGeometry, eyeMaterial);
+            leftEye.position.set(-25, 0, 6);
+            leftEye.rotation.x = Math.PI / 2;
+            
+            const rightEye = new THREE.Mesh(rightEyeGeometry, eyeMaterial);
+            rightEye.position.set(25, 0, 6);
+            rightEye.rotation.x = Math.PI / 2;
+            
+            logoGroup.add(leftEye);
+            logoGroup.add(rightEye);
+            
+            // Hide loading message
+            document.querySelector('.loading').style.display = 'none';
+        }
+        
+        // Create the logo
+        createLogo();
+        
+        // Animation
+        let isRotating = true;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (isRotating) {
+                logoGroup.rotation.y += 0.01;
+            }
+            
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        window.addEventListener('resize', onWindowResize);
+        
+        // Start animation
+        animate();
+        
+        // Controls
+        document.getElementById('rotate-btn').addEventListener('click', () => {
+            isRotating = !isRotating;
+        });
+        
+        const colors = [0x000000, 0x0088ff, 0xff3300, 0x00cc88];
+        let colorIndex = 0;
+        
+        document.getElementById('color-btn').addEventListener('click', () => {
+            colorIndex = (colorIndex + 1) % colors.length;
+            
+            logoGroup.traverse((child) => {
+                if (child.isMesh && child.material.color.getHex() !== 0xffffff) {
+                    child.material.color.set(colors[colorIndex]);
+                }
+            });
+        });
+    </script>
+</body>
+</html> 

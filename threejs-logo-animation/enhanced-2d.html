@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced 2D Logo Animation</title>
+    <style>
+        :root {
+            --primary-color: #18181B;
+            --accent-color: #0088ff;
+            --glow-color: rgba(0, 136, 255, 0.5);
+            --background-color: #ffffff;
+            --animation-speed: 1;
+            --sidebar-width: 280px;
+            --eye-color: white;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--background-color);
+            font-family: Arial, sans-serif;
+            transition: background-color 0.5s ease;
+            overflow-x: hidden;
+        }
+        
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        
+        .content-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: margin-right 0.3s ease;
+        }
+        
+        .sidebar {
+            width: var(--sidebar-width);
+            background-color: #f8f8f8;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            transform: translateX(0);
+            transition: transform 0.3s ease;
+            overflow-y: auto;
+            z-index: 100;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        
+        .sidebar.collapsed {
+            transform: translateX(var(--sidebar-width));
+        }
+        
+        .sidebar-toggle {
+            position: fixed;
+            top: 20px;
+            right: calc(var(--sidebar-width) + 20px);
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 101;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            transition: right 0.3s ease;
+        }
+        
+        .sidebar-toggle.collapsed {
+            right: 20px;
+        }
+        
+        .sidebar-toggle:hover {
+            background-color: #0077dd;
+        }
+        
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 100px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .logo-container {
+            width: 300px;
+            height: 300px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            margin: 100px;
+        }
+        
+        .logo {
+            width: 100%;
+            height: 100%;
+            filter: drop-shadow(0 0 10px rgba(0, 0, 0, 0.2));
+            position: relative;
+            z-index: 2;
+        }
+        
+        .logo-body {
+            fill: currentColor;
+        }
+        
+        /* Make sure eyes are always visible with contrasting color */
+        .left-eye, .right-eye {
+            fill: var(--eye-color);
+            opacity: 1;
+        }
+        
+        /* Animation classes - will be toggled via JavaScript */
+        .float {
+            animation: float calc(3s / var(--animation-speed)) ease-in-out infinite;
+        }
+        
+        .rotate-y {
+            animation: rotateY calc(8s / var(--animation-speed)) ease-in-out infinite;
+        }
+        
+        .rotate-full {
+            animation: rotateFull calc(12s / var(--animation-speed)) linear infinite;
+        }
+        
+        .pulse {
+            animation: pulse calc(4s / var(--animation-speed)) ease-in-out infinite;
+        }
+        
+        .glow {
+            filter: drop-shadow(0 0 10px var(--glow-color));
+        }
+        
+        .bounce {
+            animation: bounce calc(2s / var(--animation-speed)) ease-in-out infinite;
+        }
+        
+        /* Glow effect */
+        .glow-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, var(--glow-color) 0%, rgba(255,255,255,0) 70%);
+            opacity: 0;
+            z-index: 1;
+            border-radius: 50%;
+            filter: blur(20px);
+            transform: scale(1.2);
+        }
+        
+        .glow-active .glow-effect {
+            animation: glowPulse calc(4s / var(--animation-speed)) ease-in-out infinite;
+        }
+        
+        /* Particle effect */
+        .particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 3px;
+            height: 3px;
+            background-color: var(--accent-color);
+            border-radius: 50%;
+            opacity: 0;
+        }
+        
+        .particles-active .particle {
+            animation: particleFloat calc(10s / var(--animation-speed)) linear infinite;
+        }
+        
+        /* Animation keyframes */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        @keyframes rotateY {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(10deg); }
+        }
+        
+        @keyframes rotateFull {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-20px); }
+            60% { transform: translateY(-10px); }
+        }
+        
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.2; transform: scale(1.2); }
+            50% { opacity: 0.5; transform: scale(1.5); }
+        }
+        
+        @keyframes particleFloat {
+            0% { 
+                transform: translate(calc(var(--x) * 100px), calc(var(--y) * 100px)); 
+                opacity: 0;
+            }
+            10% { opacity: var(--opacity); }
+            90% { opacity: var(--opacity); }
+            100% { 
+                transform: translate(
+                    calc(var(--x) * 100px + var(--dx) * 50px), 
+                    calc(var(--y) * 100px + var(--dy) * 50px)
+                ); 
+                opacity: 0;
+            }
+        }
+        
+        /* Controls */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background-color: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .control-group h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            color: #333;
+            border-bottom: 1px solid #ddd;
+            padding-bottom: 8px;
+        }
+        
+        button {
+            background-color: #e0e0e0;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #d0d0d0;
+        }
+        
+        button.active {
+            background-color: var(--accent-color);
+            color: white;
+        }
+        
+        .color-picker {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+        
+        .color-option {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .color-option.active {
+            border-color: #333;
+        }
+        
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 5px;
+        }
+        
+        .slider-container label {
+            font-size: 13px;
+            min-width: 50px;
+        }
+        
+        input[type="range"] {
+            width: 100%;
+        }
+        
+        .sidebar-title {
+            font-size: 18px;
+            margin: 0 0 20px 0;
+            text-align: center;
+            color: #333;
+        }
+        
+        .button-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        
+        /* Theme options */
+        .dark-theme {
+            --background-color: #121212;
+            --primary-color: #ffffff;
+            color: white;
+        }
+        
+        .dark-theme .sidebar {
+            background-color: #1e1e1e;
+            color: white;
+        }
+        
+        .dark-theme .control-group {
+            background-color: #2d2d2d;
+        }
+        
+        .dark-theme .control-group h3 {
+            color: #e0e0e0;
+            border-bottom-color: #444;
+        }
+        
+        .blue-theme {
+            --background-color: #0a192f;
+            --primary-color: #64ffda;
+            --accent-color: #64ffda;
+            --glow-color: rgba(100, 255, 218, 0.5);
+            color: white;
+        }
+        
+        .blue-theme .sidebar {
+            background-color: #112240;
+            color: #e6f1ff;
+        }
+        
+        .blue-theme .control-group {
+            background-color: #1d3b6f;
+        }
+        
+        .blue-theme .control-group h3 {
+            color: #64ffda;
+            border-bottom-color: #233554;
+        }
+        
+        .gradient-theme {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-color: #ffffff;
+            color: white;
+        }
+        
+        .gradient-theme .sidebar {
+            background-color: rgba(118, 75, 162, 0.9);
+            color: white;
+        }
+        
+        .gradient-theme .control-group {
+            background-color: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+        
+        .gradient-theme .control-group h3 {
+            color: white;
+            border-bottom-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                transform: translateX(100%);
+            }
+            
+            .sidebar.collapsed {
+                transform: translateX(100%);
+            }
+            
+            .sidebar-toggle {
+                right: 20px;
+            }
+            
+            .logo-container {
+                margin: 50px;
+            }
+            
+            .container {
+                padding: 50px 20px;
+            }
+        }
+        
+        .wink .right-eye {
+            animation: eyeWink calc(3s / var(--animation-speed)) ease-in-out infinite;
+            transform-origin: center;
+        }
+        
+        @keyframes eyeWink {
+            0%, 100% { transform: scaleY(1); }
+            10%, 15% { transform: scaleY(0.1); }
+            20% { transform: scaleY(1); }
+            70%, 75% { transform: scaleY(0.1); }
+            80% { transform: scaleY(1); }
+        }
+        
+        /* Remove the old wink animation that affected the whole logo */
+        @keyframes wink {
+            0%, 100% { transform: scaleY(1); }
+            10%, 15% { transform: scaleY(0.3); }
+            20% { transform: scaleY(1); }
+            70%, 75% { transform: scaleY(0.3); }
+            80% { transform: scaleY(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <div class="content-area">
+            <div class="container">
+                <div class="logo-container">
+                    <div class="glow-effect"></div>
+                    <div class="particles"></div>
+                    <!-- Directly embedded SVG -->
+                    <svg class="logo float" width="115" height="121" viewBox="0 0 115 121" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path class="logo-body" d="M114.317 67.8625L107.099 53.3693V45.0225C107.099 31.1869 95.9942 19.9819 82.2992 19.9819H69.9623C70.8552 18.1481 71.3456 16.0867 71.3456 13.9114C71.3456 6.22221 65.1583 0 57.5123 0C49.8662 0 43.6789 6.22221 43.6789 13.9114C43.6789 16.0867 44.1693 18.1481 45.0622 19.9819H32.7254C19.0303 19.9819 7.9259 31.1869 7.9259 45.0225V53.3693L0.556479 67.8246C-0.185493 69.279 -0.185493 71.0116 0.556479 72.4659L7.9259 86.7568V95.1036C7.9259 108.939 19.0303 120.144 32.7254 120.144H82.2992C95.9942 120.144 107.099 108.939 107.099 95.1036V86.7568L114.305 72.4154C115.021 70.9863 115.021 69.3042 114.317 67.8625Z"/>
+                        <!-- Left eye -->
+                        <path class="left-eye" d="M49.9668 79.6746C49.9668 85.96 44.8987 91.0567 38.6486 91.0567C32.3984 91.0567 27.3303 85.96 27.3303 79.6746V59.4398C27.3303 53.1543 32.3984 48.0577 38.6486 48.0577C44.8987 48.0577 49.9668 53.1543 49.9668 59.4398V79.6746Z"/>
+                        <!-- Right eye -->
+                        <path class="right-eye" d="M86.4366 79.6746C86.4366 85.96 81.3685 91.0567 75.1184 91.0567C68.8682 91.0567 63.8002 85.96 63.8002 79.6746V59.4398C63.8002 53.1543 68.8682 48.0577 75.1184 48.0577C81.3685 48.0577 86.4366 53.1543 86.4366 59.4398V79.6746Z"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+        
+        <button class="sidebar-toggle">
+            ≡
+        </button>
+        
+        <div class="sidebar">
+            <h2 class="sidebar-title">Logo Controls</h2>
+            <div class="controls">
+                <div class="control-group">
+                    <h3>Animation</h3>
+                    <div class="button-group">
+                        <button class="animation-btn active" data-animation="float">Float</button>
+                        <button class="animation-btn" data-animation="rotate-y">Rotate Y</button>
+                        <button class="animation-btn" data-animation="rotate-full">Rotate 360°</button>
+                        <button class="animation-btn" data-animation="pulse">Pulse</button>
+                        <button class="animation-btn" data-animation="bounce">Bounce</button>
+                        <button class="animation-btn" data-animation="wink">Wink</button>
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Effects</h3>
+                    <div class="button-group">
+                        <button class="effect-btn" data-effect="glow">Glow</button>
+                        <button class="effect-btn" data-effect="particles">Particles</button>
+                    </div>
+                    <div class="slider-container">
+                        <label>Speed</label>
+                        <input type="range" id="speed-slider" min="0.5" max="2" step="0.1" value="1">
+                    </div>
+                </div>
+                
+                <div class="control-group">
+                    <h3>Theme</h3>
+                    <div class="button-group">
+                        <button class="theme-btn active" data-theme="light">Light</button>
+                        <button class="theme-btn" data-theme="dark">Dark</button>
+                        <button class="theme-btn" data-theme="blue">Blue</button>
+                        <button class="theme-btn" data-theme="gradient">Gradient</button>
+                    </div>
+                    <h3>Logo Color</h3>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background-color: #18181B;" data-color="#18181B"></div>
+                        <div class="color-option" style="background-color: #0088ff;" data-color="#0088ff"></div>
+                        <div class="color-option" style="background-color: #ff3300;" data-color="#ff3300"></div>
+                        <div class="color-option" style="background-color: #00cc88;" data-color="#00cc88"></div>
+                    </div>
+                    <h3>Eye Color</h3>
+                    <div class="color-picker eye-color-picker">
+                        <div class="eye-color-option active" style="background-color: white;" data-color="white"></div>
+                        <div class="eye-color-option" style="background-color: #ffcc00;" data-color="#ffcc00"></div>
+                        <div class="eye-color-option" style="background-color: #ff3366;" data-color="#ff3366"></div>
+                        <div class="eye-color-option" style="background-color: #00ffcc;" data-color="#00ffcc"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Create particles
+        const particlesContainer = document.querySelector('.particles');
+        const particleCount = 30;
+        
+        for (let i = 0; i < particleCount; i++) {
+            const particle = document.createElement('div');
+            particle.classList.add('particle');
+            
+            // Random starting position and movement direction
+            const x = Math.random() * 2 - 1; // -1 to 1
+            const y = Math.random() * 2 - 1; // -1 to 1
+            const dx = Math.random() * 2 - 1; // -1 to 1
+            const dy = Math.random() * 2 - 1; // -1 to 1
+            const delay = Math.random() * 5; // 0 to 5s delay
+            const opacity = Math.random() * 0.5 + 0.2; // 0.2 to 0.7 opacity
+            
+            particle.style.setProperty('--x', x);
+            particle.style.setProperty('--y', y);
+            particle.style.setProperty('--dx', dx);
+            particle.style.setProperty('--dy', dy);
+            particle.style.setProperty('--opacity', opacity);
+            particle.style.animationDelay = `${delay}s`;
+            
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Sidebar toggle
+        const sidebarToggle = document.querySelector('.sidebar-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            sidebarToggle.classList.toggle('collapsed');
+            sidebarToggle.textContent = sidebar.classList.contains('collapsed') ? '☰' : '✕';
+        });
+        
+        // Animation buttons
+        const animationBtns = document.querySelectorAll('.animation-btn');
+        const logo = document.querySelector('.logo');
+        const rightEye = document.querySelector('.right-eye');
+        const leftEye = document.querySelector('.left-eye');
+        
+        // Make sure eyes are visible initially with contrasting color
+        if (rightEye && leftEye) {
+            rightEye.style.fill = 'var(--eye-color)';
+            leftEye.style.fill = 'var(--eye-color)';
+        }
+        
+        animationBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove all animation classes
+                logo.classList.remove('float', 'rotate-y', 'rotate-full', 'pulse', 'bounce', 'wink');
+                
+                // Reset any direct styles on the eyes
+                rightEye.style.animation = '';
+                rightEye.style.transformOrigin = '';
+                
+                // Add selected animation class
+                const animation = btn.dataset.animation;
+                
+                if (animation === 'wink') {
+                    // For wink, we don't add a class to the logo itself
+                    // Instead, we directly animate the right eye
+                    rightEye.style.animation = 'eyeWink calc(3s / var(--animation-speed)) ease-in-out infinite';
+                    rightEye.style.transformOrigin = 'center';
+                    
+                    // Make sure the eye color is preserved during winking
+                    const currentEyeColor = getComputedStyle(document.documentElement).getPropertyValue('--eye-color').trim();
+                    rightEye.style.fill = currentEyeColor;
+                    leftEye.style.fill = currentEyeColor;
+                } else {
+                    // For other animations, add the class to the logo
+                    logo.classList.add(animation);
+                    
+                    // Reset the eye animation
+                    rightEye.style.animation = 'none';
+                }
+                
+                // Update active button
+                animationBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Effect buttons
+        const effectBtns = document.querySelectorAll('.effect-btn');
+        const logoContainer = document.querySelector('.logo-container');
+        
+        effectBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const effect = btn.dataset.effect;
+                
+                if (effect === 'glow') {
+                    logoContainer.classList.toggle('glow-active');
+                } else if (effect === 'particles') {
+                    logoContainer.classList.toggle('particles-active');
+                }
+                
+                btn.classList.toggle('active');
+            });
+        });
+        
+        // Theme buttons
+        const themeBtns = document.querySelectorAll('.theme-btn');
+        
+        themeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Remove all theme classes
+                document.body.classList.remove('dark-theme', 'blue-theme', 'gradient-theme');
+                
+                // Add selected theme class
+                const theme = btn.dataset.theme;
+                if (theme !== 'light') {
+                    document.body.classList.add(`${theme}-theme`);
+                }
+                
+                // Update active button
+                themeBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+        
+        // Color options
+        const colorOptions = document.querySelectorAll('.color-option');
+        
+        colorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const color = option.dataset.color;
+                document.documentElement.style.setProperty('--primary-color', color);
+                
+                // Update active option
+                colorOptions.forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+            });
+        });
+        
+        // Eye color options
+        const eyeColorOptions = document.querySelectorAll('.eye-color-option');
+        
+        eyeColorOptions.forEach(option => {
+            option.addEventListener('click', () => {
+                const color = option.dataset.color;
+                document.documentElement.style.setProperty('--eye-color', color);
+                
+                // Update active option
+                eyeColorOptions.forEach(o => o.classList.remove('active'));
+                option.classList.add('active');
+                
+                // Update eye colors directly
+                if (rightEye && leftEye) {
+                    rightEye.style.fill = color;
+                    leftEye.style.fill = color;
+                }
+            });
+        });
+        
+        // Speed slider
+        const speedSlider = document.getElementById('speed-slider');
+        
+        speedSlider.addEventListener('input', () => {
+            document.documentElement.style.setProperty('--animation-speed', speedSlider.value);
+        });
+        
+        // Initialize sidebar in collapsed state for clean view
+        sidebar.classList.add('collapsed');
+        sidebarToggle.classList.add('collapsed');
+        sidebarToggle.textContent = '☰';
+    </script>
+</body>
+</html> 

@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cline Logo 3D</title>
+    <style>
+        :root {
+            --primary: #0088ff;
+            --dark: #121212;
+            --light: #ffffff;
+            --gray: #333333;
+            --transition: all 0.3s ease;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --glass-blur: 10px;
+            --text-color: white;
+            --glass-bg-dark: rgba(0, 0, 0, 0.2);
+            --glass-border-dark: rgba(0, 0, 0, 0.3);
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            background-color: var(--dark);
+            color: var(--text-color);
+            transition: background-color 1s ease;
+        }
+        
+        body.light-mode {
+            --glass-bg: rgba(0, 0, 0, 0.1);
+            --glass-border: rgba(0, 0, 0, 0.2);
+            --text-color: #121212;
+        }
+        
+        #info {
+            position: absolute;
+            top: 0;
+            width: 100%;
+            text-align: center;
+            color: var(--text-color);
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(10px);
+            padding: 12px 0;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            z-index: 100;
+            transition: var(--transition);
+            opacity: 0.8;
+        }
+        
+        #info:hover {
+            opacity: 1;
+        }
+        
+        .controls {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            background-color: rgba(0,0,0,0.7);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-radius: 12px;
+            z-index: 100;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: var(--transition);
+            max-width: 90vw;
+        }
+        
+        .controls:hover {
+            background-color: rgba(0,0,0,0.8);
+        }
+        
+        .controls button {
+            padding: 10px 16px;
+            cursor: pointer;
+            background-color: var(--gray);
+            color: var(--text-color);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            transition: var(--transition);
+            min-width: 100px;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .controls button:hover {
+            background-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        
+        .controls button.active {
+            background-color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: row;
+                flex-wrap: wrap;
+                left: 50%;
+                bottom: 20px;
+                transform: translateX(-50%);
+                padding: 10px;
+                max-width: 95vw;
+            }
+            
+            .controls button {
+                min-width: auto;
+                padding: 8px 12px;
+                font-size: 12px;
+                flex-basis: calc(50% - 5px);
+                margin: 0;
+            }
+            
+            #controls-info {
+                display: none;
+            }
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 18px;
+            text-align: center;
+            padding: 16px 24px;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        #controls-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 14px;
+            opacity: 0.9;
+            padding: 10px 16px;
+            border-radius: 12px;
+            transition: opacity 0.3s ease;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        #controls-info:hover {
+            opacity: 1;
+        }
+        
+        #reset-view {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            border: none;
+            color: var(--text-color);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: var(--transition);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        #reset-view:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+        
+        #loading-bg {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: var(--text-color);
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 16px;
+            display: none;
+            z-index: 100;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: var(--text-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        body.light-mode .spinner {
+            border: 3px solid rgba(0,0,0,.2);
+            border-top-color: #121212;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .menu-container {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .dropdown {
+            position: relative;
+            width: 180px;
+        }
+        
+        .dropdown-toggle, .dropdown-item, #reset-view, #controls-info, #loading, #loading-bg {
+            color: var(--text-color);
+            transition: color 0.5s ease, background 0.5s ease, border-color 0.5s ease;
+        }
+        
+        .dropdown-toggle {
+            width: 100%;
+            padding: 12px 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 14px;
+            text-align: left;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .dropdown-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+        
+        .dropdown-toggle.active {
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            background: rgba(255, 255, 255, 0.15);
+            border-bottom: none;
+        }
+        
+        .dropdown-toggle::after {
+            content: "▼";
+            font-size: 10px;
+            margin-left: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .dropdown-toggle.active::after {
+            transform: rotate(180deg);
+        }
+        
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.3s ease;
+            z-index: 101;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            box-shadow: var(--glass-shadow);
+        }
+        
+        .dropdown-menu.show {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .dropdown-item {
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+            cursor: pointer;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+        
+        .dropdown-item:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .dropdown-item.active {
+            background-color: var(--primary);
+        }
+        
+        /* Frosted glass effect base class */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+        
+        /* Custom scrollbar for dropdown menus */
+        .dropdown-menu::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+        
+        .dropdown-menu::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading 3D Logo...</div>
+    <div id="controls-info">Click and drag to rotate | Scroll to zoom</div>
+    <button id="reset-view">Reset View</button>
+    <div id="loading-bg"><span class="spinner"></span> Loading...</div>
+    
+    <div class="menu-container">
+        <div class="dropdown" id="rotation-dropdown">
+            <button class="dropdown-toggle">Rotation: On</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item active" data-value="on">On</a>
+                <a class="dropdown-item" data-value="off">Off</a>
+            </div>
+        </div>
+        
+        <div class="dropdown" id="color-dropdown">
+            <button class="dropdown-toggle">Color: Black</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item active" data-value="0">Black</a>
+                <a class="dropdown-item" data-value="1">Blue</a>
+                <a class="dropdown-item" data-value="2">Red</a>
+                <a class="dropdown-item" data-value="3">Green</a>
+                <a class="dropdown-item" data-value="4">Gold</a>
+            </div>
+        </div>
+        
+        <div class="dropdown" id="texture-dropdown">
+            <button class="dropdown-toggle">Texture: None</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item active" data-value="0">None</a>
+                <a class="dropdown-item" data-value="1">Metal</a>
+                <a class="dropdown-item" data-value="2">Chrome</a>
+                <a class="dropdown-item" data-value="3">Glass</a>
+                <a class="dropdown-item" data-value="4">Hologram</a>
+                <a class="dropdown-item" data-value="5">Matte</a>
+                <a class="dropdown-item" data-value="6">Glossy</a>
+                <a class="dropdown-item" data-value="7">Carbon</a>
+                <a class="dropdown-item" data-value="8">Wood</a>
+                <a class="dropdown-item" data-value="9">Marble</a>
+                <a class="dropdown-item" data-value="10">Lava</a>
+                <a class="dropdown-item" data-value="11">Water</a>
+                <a class="dropdown-item" data-value="12">Brick</a>
+            </div>
+        </div>
+        
+        <div class="dropdown" id="lighting-dropdown">
+            <button class="dropdown-toggle">Lighting: Standard</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item active" data-value="standard">Standard</a>
+                <a class="dropdown-item" data-value="soft">Soft</a>
+                <a class="dropdown-item" data-value="dramatic">Dramatic</a>
+                <a class="dropdown-item" data-value="warm">Warm</a>
+                <a class="dropdown-item" data-value="cool">Cool</a>
+                <a class="dropdown-item" data-value="studio">Studio</a>
+                <a class="dropdown-item" data-value="night">Night</a>
+            </div>
+        </div>
+        
+        <div class="dropdown" id="background-dropdown">
+            <button class="dropdown-toggle">Background: Dark</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item active" data-value="0">Dark</a>
+                <a class="dropdown-item" data-value="1">Light</a>
+                <a class="dropdown-item" data-value="2">Navy</a>
+                <a class="dropdown-item" data-value="3">Charcoal</a>
+                <a class="dropdown-item" data-value="4">Sunset</a>
+                <a class="dropdown-item" data-value="5">Deep Blue</a>
+                <a class="dropdown-item" data-value="6">Emerald</a>
+                <a class="dropdown-item" data-value="7">Noir</a>
+                <a class="dropdown-item" data-value="8">Royal</a>
+                <a class="dropdown-item" data-value="9">Grid</a>
+                <a class="dropdown-item" data-value="10">Blue Fog</a>
+                <a class="dropdown-item" data-value="11">Red Fog</a>
+                <a class="dropdown-item" data-value="12">Green Fog</a>
+                <a class="dropdown-item" data-value="13">Pisa</a>
+                <a class="dropdown-item" data-value="14">Space</a>
+                <a class="dropdown-item" data-value="15">Bridge</a>
+            </div>
+        </div>
+        
+        <div class="dropdown" id="effects-dropdown">
+            <button class="dropdown-toggle">Effects</button>
+            <div class="dropdown-menu">
+                <a class="dropdown-item" data-value="particles">Particles</a>
+                <a class="dropdown-item" data-value="wireframe">Wireframe</a>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    
+    <script>
+        // Scene setup
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x121212);
+        
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera.position.z = 200;
+        camera.position.y = 0;
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+        document.body.appendChild(renderer.domElement);
+        
+        // Controls
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.enableZoom = true;
+        controls.enablePan = false;
+        controls.minDistance = 50;
+        controls.maxDistance = 300;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 1;
+        
+        // Lighting setup
+        let lights = {
+            ambient: null,
+            directional: null,
+            back: null,
+            spot1: null,
+            spot2: null
+        };
+        
+        // Initialize lighting
+        function setupLighting(preset = 'standard') {
+            // Remove existing lights
+            Object.values(lights).forEach(light => {
+                if (light) scene.remove(light);
+            });
+            
+            // Create new lights based on preset
+            switch(preset) {
+                case 'standard':
+                    lights.ambient = new THREE.AmbientLight(0xffffff, 0.5);
+                    scene.add(lights.ambient);
+                    
+                    lights.directional = new THREE.DirectionalLight(0xffffff, 0.8);
+                    lights.directional.position.set(0, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    lights.back = new THREE.DirectionalLight(0xffffff, 0.3);
+                    lights.back.position.set(0, -1, -1);
+                    scene.add(lights.back);
+                    
+                    // Reset background tint
+                    updateBackgroundTint(0xffffff, 0);
+                    break;
+                    
+                case 'soft':
+                    lights.ambient = new THREE.AmbientLight(0xffffff, 0.7);
+                    scene.add(lights.ambient);
+                    
+                    lights.directional = new THREE.DirectionalLight(0xffffff, 0.5);
+                    lights.directional.position.set(0, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    lights.back = new THREE.DirectionalLight(0xffffff, 0.2);
+                    lights.back.position.set(0, -1, -1);
+                    scene.add(lights.back);
+                    
+                    // Soft white tint
+                    updateBackgroundTint(0xffffff, 0.1);
+                    break;
+                    
+                case 'dramatic':
+                    lights.ambient = new THREE.AmbientLight(0xffffff, 0.2);
+                    scene.add(lights.ambient);
+                    
+                    lights.directional = new THREE.DirectionalLight(0xffffff, 1.0);
+                    lights.directional.position.set(1, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    lights.spot1 = new THREE.SpotLight(0xffffff, 0.8);
+                    lights.spot1.position.set(-50, 50, 50);
+                    lights.spot1.angle = Math.PI / 6;
+                    lights.spot1.penumbra = 0.2;
+                    scene.add(lights.spot1);
+                    
+                    // Dramatic dark tint
+                    updateBackgroundTint(0x000000, 0.3);
+                    break;
+                    
+                case 'warm':
+                    lights.ambient = new THREE.AmbientLight(0xffebcd, 0.5); // Warm ambient
+                    scene.add(lights.ambient);
+                    
+                    lights.directional = new THREE.DirectionalLight(0xff9900, 0.8); // Orange-yellow main light
+                    lights.directional.position.set(1, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    lights.back = new THREE.DirectionalLight(0xff5500, 0.4); // Orange backlight
+                    lights.back.position.set(-1, -1, -1);
+                    scene.add(lights.back);
+                    
+                    // Warm orange tint
+                    updateBackgroundTint(0xff9900, 0.2);
+                    break;
+                    
+                case 'cool':
+                    lights.ambient = new THREE.AmbientLight(0xe6f0ff, 0.5); // Cool ambient
+                    scene.add(lights.ambient);
+                    
+                    lights.directional = new THREE.DirectionalLight(0x80a0ff, 0.8); // Blue-ish main light
+                    lights.directional.position.set(1, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    lights.back = new THREE.DirectionalLight(0x0088ff, 0.4); // Blue backlight
+                    lights.back.position.set(-1, -1, -1);
+                    scene.add(lights.back);
+                    
+                    // Cool blue tint
+                    updateBackgroundTint(0x80a0ff, 0.2);
+                    break;
+                    
+                case 'studio':
+                    lights.ambient = new THREE.AmbientLight(0xffffff, 0.3);
+                    scene.add(lights.ambient);
+                    
+                    // Key light
+                    lights.directional = new THREE.DirectionalLight(0xffffff, 0.8);
+                    lights.directional.position.set(1, 1, 1);
+                    scene.add(lights.directional);
+                    
+                    // Fill light
+                    lights.spot1 = new THREE.SpotLight(0xffffff, 0.4);
+                    lights.spot1.position.set(-50, 0, 50);
+                    lights.spot1.angle = Math.PI / 4;
+                    lights.spot1.penumbra = 0.5;
+                    scene.add(lights.spot1);
+                    
+                    // Rim light
+                    lights.spot2 = new THREE.SpotLight(0xffffff, 0.3);
+                    lights.spot2.position.set(0, 50, -50);
+                    lights.spot2.angle = Math.PI / 4;
+                    lights.spot2.penumbra = 0.5;
+                    scene.add(lights.spot2);
+                    
+                    // Studio neutral tint
+                    updateBackgroundTint(0xffffff, 0.15);
+                    break;
+                    
+                case 'night':
+                    lights.ambient = new THREE.AmbientLight(0x0000ff, 0.1); // Very dim blue ambient
+                    scene.add(lights.ambient);
+                    
+                    // Moonlight
+                    lights.directional = new THREE.DirectionalLight(0x8080ff, 0.4); // Soft blue light
+                    lights.directional.position.set(0, 1, 0);
+                    scene.add(lights.directional);
+                    
+                    // Accent light (like a distant street lamp)
+                    lights.spot1 = new THREE.SpotLight(0xffaa00, 0.6); // Orange spotlight
+                    lights.spot1.position.set(-100, 50, 100);
+                    lights.spot1.angle = Math.PI / 8;
+                    lights.spot1.penumbra = 0.9;
+                    lights.spot1.distance = 300;
+                    scene.add(lights.spot1);
+                    
+                    // Night blue tint
+                    updateBackgroundTint(0x0000ff, 0.3);
+                    break;
+                    
+                default:
+                    // Default to standard lighting
+                    setupLighting('standard');
+            }
+        }
+        
+        // Function to update background tint based on lighting
+        function updateBackgroundTint(color, intensity) {
+            // Store current background
+            const currentBg = scene.background;
+            
+            // Skip if using skybox (can't tint cubemap easily)
+            if (currentBg && currentBg.isCubeTexture) return;
+            
+            // Apply tint to solid color backgrounds
+            if (currentBg && currentBg.isColor) {
+                // Get the base color
+                const baseColor = new THREE.Color().copy(currentBg);
+                
+                if (intensity > 0) {
+                    // Mix the base color with the tint color
+                    const tintColor = new THREE.Color(color);
+                    baseColor.lerp(tintColor, intensity);
+                    scene.background = baseColor;
+                }
+            }
+            
+            // Apply tint to gradient backgrounds
+            if (currentBg && currentBg.isCanvasTexture) {
+                // We'll need to recreate the gradient with the tint
+                // This is handled in the setGradientBackground function
+                // We'll just store the current tint for use there
+                window.currentTint = { color, intensity };
+            }
+            
+            // Update UI based on background brightness
+            updateUIContrast();
+        }
+        
+        // Function to update UI contrast based on background brightness
+        function updateUIContrast() {
+            const bg = scene.background;
+            
+            // Default to dark mode
+            document.body.classList.remove('light-mode');
+            
+            if (bg) {
+                if (bg.isColor) {
+                    // Calculate perceived brightness (human eye is more sensitive to green)
+                    const brightness = 0.299 * bg.r + 0.587 * bg.g + 0.114 * bg.b;
+                    
+                    // If background is bright, switch to dark text
+                    if (brightness > 0.6) {
+                        document.body.classList.add('light-mode');
+                    }
+                } 
+                // For skyboxes and gradients, we keep the default light text
+            }
+        }
+        
+        // Initialize with standard lighting
+        setupLighting();
+        
+        // Logo group
+        const logoGroup = new THREE.Group();
+        scene.add(logoGroup);
+        
+        // Create accurate logo
+        function createAccurateLogo() {
+            // Main body shape using the exact path data from the SVG
+            const bodyShape = new THREE.Shape();
+            
+            // Scale factor to make the logo a good size
+            const scale = 1;
+            
+            // Starting point
+            bodyShape.moveTo(57.5123 * scale, 0 * scale);
+            
+            // Create the main outline path following the SVG path data
+            // Top section
+            bodyShape.bezierCurveTo(
+                65.1583 * scale, 0 * scale,
+                71.3456 * scale, 6.22221 * scale,
+                71.3456 * scale, 13.9114 * scale
+            );
+            bodyShape.bezierCurveTo(
+                71.3456 * scale, 16.0867 * scale,
+                70.8552 * scale, 18.1481 * scale,
+                69.9623 * scale, 19.9819 * scale
+            );
+            bodyShape.lineTo(82.2992 * scale, 19.9819 * scale);
+            bodyShape.bezierCurveTo(
+                95.9942 * scale, 19.9819 * scale,
+                107.099 * scale, 31.1869 * scale,
+                107.099 * scale, 45.0225 * scale
+            );
+            bodyShape.lineTo(107.099 * scale, 53.3693 * scale);
+            bodyShape.lineTo(114.317 * scale, 67.8625 * scale);
+            bodyShape.bezierCurveTo(
+                115.021 * scale, 69.3042 * scale,
+                115.021 * scale, 70.9863 * scale,
+                114.305 * scale, 72.4154 * scale
+            );
+            bodyShape.lineTo(107.099 * scale, 86.7568 * scale);
+            bodyShape.lineTo(107.099 * scale, 95.1036 * scale);
+            bodyShape.bezierCurveTo(
+                107.099 * scale, 108.939 * scale,
+                95.9942 * scale, 120.144 * scale,
+                82.2992 * scale, 120.144 * scale
+            );
+            bodyShape.lineTo(32.7254 * scale, 120.144 * scale);
+            bodyShape.bezierCurveTo(
+                19.0303 * scale, 120.144 * scale,
+                7.9259 * scale, 108.939 * scale,
+                7.9259 * scale, 95.1036 * scale
+            );
+            bodyShape.lineTo(7.9259 * scale, 86.7568 * scale);
+            bodyShape.lineTo(0.556479 * scale, 72.4659 * scale);
+            bodyShape.bezierCurveTo(
+                -0.185493 * scale, 71.0116 * scale,
+                -0.185493 * scale, 69.279 * scale,
+                0.556479 * scale, 67.8246 * scale
+            );
+            bodyShape.lineTo(7.9259 * scale, 53.3693 * scale);
+            bodyShape.lineTo(7.9259 * scale, 45.0225 * scale);
+            bodyShape.bezierCurveTo(
+                7.9259 * scale, 31.1869 * scale,
+                19.0303 * scale, 19.9819 * scale,
+                32.7254 * scale, 19.9819 * scale
+            );
+            bodyShape.lineTo(45.0622 * scale, 19.9819 * scale);
+            bodyShape.bezierCurveTo(
+                44.1693 * scale, 18.1481 * scale,
+                43.6789 * scale, 16.0867 * scale,
+                43.6789 * scale, 13.9114 * scale
+            );
+            bodyShape.bezierCurveTo(
+                43.6789 * scale, 6.22221 * scale,
+                49.8662 * scale, 0 * scale,
+                57.5123 * scale, 0 * scale
+            );
+            
+            // Create the left eye path
+            const leftEyePath = new THREE.Path();
+            leftEyePath.moveTo(27.3303 * scale, 59.4398 * scale);
+            leftEyePath.bezierCurveTo(
+                27.3303 * scale, 53.1543 * scale,
+                32.3984 * scale, 48.0577 * scale,
+                38.6486 * scale, 48.0577 * scale
+            );
+            leftEyePath.bezierCurveTo(
+                44.8987 * scale, 48.0577 * scale,
+                49.9668 * scale, 53.1543 * scale,
+                49.9668 * scale, 59.4398 * scale
+            );
+            leftEyePath.lineTo(49.9668 * scale, 79.6746 * scale);
+            leftEyePath.bezierCurveTo(
+                49.9668 * scale, 85.96 * scale,
+                44.8987 * scale, 91.0567 * scale,
+                38.6486 * scale, 91.0567 * scale
+            );
+            leftEyePath.bezierCurveTo(
+                32.3984 * scale, 91.0567 * scale,
+                27.3303 * scale, 85.96 * scale,
+                27.3303 * scale, 79.6746 * scale
+            );
+            leftEyePath.lineTo(27.3303 * scale, 59.4398 * scale);
+            
+            // Create the right eye path
+            const rightEyePath = new THREE.Path();
+            rightEyePath.moveTo(63.8002 * scale, 59.4398 * scale);
+            rightEyePath.bezierCurveTo(
+                63.8002 * scale, 53.1543 * scale,
+                68.8682 * scale, 48.0577 * scale,
+                75.1184 * scale, 48.0577 * scale
+            );
+            rightEyePath.bezierCurveTo(
+                81.3685 * scale, 48.0577 * scale,
+                86.4366 * scale, 53.1543 * scale,
+                86.4366 * scale, 59.4398 * scale
+            );
+            rightEyePath.lineTo(86.4366 * scale, 79.6746 * scale);
+            rightEyePath.bezierCurveTo(
+                86.4366 * scale, 85.96 * scale,
+                81.3685 * scale, 91.0567 * scale,
+                75.1184 * scale, 91.0567 * scale
+            );
+            rightEyePath.bezierCurveTo(
+                68.8682 * scale, 91.0567 * scale,
+                63.8002 * scale, 85.96 * scale,
+                63.8002 * scale, 79.6746 * scale
+            );
+            rightEyePath.lineTo(63.8002 * scale, 59.4398 * scale);
+            
+            // Add the eye paths as holes in the main shape
+            bodyShape.holes.push(leftEyePath);
+            bodyShape.holes.push(rightEyePath);
+            
+            // Extrude the body
+            const extrudeSettings = {
+                depth: 10,
+                bevelEnabled: true,
+                bevelThickness: 2,
+                bevelSize: 1,
+                bevelSegments: 5
+            };
+            
+            const bodyGeometry = new THREE.ExtrudeGeometry(bodyShape, extrudeSettings);
+            
+            // Create materials
+            const bodyMaterial = new THREE.MeshStandardMaterial({
+                color: 0x000000,
+                metalness: 0.3,
+                roughness: 0.4,
+                side: THREE.DoubleSide
+            });
+            
+            // Store the original material for reference
+            window.originalMaterial = bodyMaterial.clone();
+            
+            const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+            
+            // Center the logo properly
+            const box = new THREE.Box3().setFromObject(bodyMesh);
+            const center = box.getCenter(new THREE.Vector3());
+            bodyMesh.position.sub(center);
+            
+            // Rotate to correct orientation
+            bodyMesh.rotation.x = Math.PI;
+            
+            logoGroup.add(bodyMesh);
+            
+            // Position the entire logo group at the center of the scene
+            logoGroup.position.set(0, 0, 0);
+        }
+        
+        // Initial camera and scene setup
+        function setupScene() {
+            // Create the logo
+            createAccurateLogo();
+            
+            // Calculate the bounding box of the entire scene
+            const bbox = new THREE.Box3().setFromObject(logoGroup);
+            const center = bbox.getCenter(new THREE.Vector3());
+            const size = bbox.getSize(new THREE.Vector3());
+            
+            // Adjust camera to frame the logo properly
+            const maxDim = Math.max(size.x, size.y);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            
+            // Add some padding
+            cameraZ *= 1.5;
+            
+            // Update camera position
+            camera.position.z = cameraZ;
+            camera.lookAt(center);
+            
+            // Set initial controls target to center
+            controls.target.copy(center);
+            controls.update();
+        }
+        
+        // Create particles
+        let particles;
+        function createParticles() {
+            const particleCount = 500;
+            const particleGeometry = new THREE.BufferGeometry();
+            const particlePositions = new Float32Array(particleCount * 3);
+            
+            for (let i = 0; i < particleCount * 3; i += 3) {
+                particlePositions[i] = (Math.random() - 0.5) * 300;
+                particlePositions[i + 1] = (Math.random() - 0.5) * 300;
+                particlePositions[i + 2] = (Math.random() - 0.5) * 300;
+            }
+            
+            particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+            
+            const particleMaterial = new THREE.PointsMaterial({
+                color: 0x0088ff,
+                size: 2,
+                transparent: true,
+                opacity: 0.5
+            });
+            
+            particles = new THREE.Points(particleGeometry, particleMaterial);
+            scene.add(particles);
+        }
+        
+        // Create the logo
+        setupScene();
+        
+        // Hide loading message when everything is ready
+        document.getElementById('loading').style.display = 'none';
+        
+        // Animation
+        let isRotating = true;
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            if (isRotating) {
+                controls.update(); // This will handle the auto-rotation
+            } else {
+                controls.update(); // Still update controls for manual rotation
+            }
+            
+            if (particles) {
+                particles.rotation.y += 0.001;
+            }
+            
+            renderer.render(scene, camera);
+        }
+        
+        // Handle window resize
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+        
+        window.addEventListener('resize', onWindowResize);
+        
+        // Start animation
+        animate();
+        
+        // Initialize dropdowns
+        document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                // Close all other dropdowns
+                document.querySelectorAll('.dropdown-toggle').forEach(otherToggle => {
+                    if (otherToggle !== toggle) {
+                        otherToggle.classList.remove('active');
+                        otherToggle.nextElementSibling.classList.remove('show');
+                    }
+                });
+                
+                // Toggle current dropdown
+                this.classList.toggle('active');
+                this.nextElementSibling.classList.toggle('show');
+            });
+        });
+        
+        // Close dropdowns when clicking outside
+        document.addEventListener('click', function(event) {
+            if (!event.target.closest('.dropdown')) {
+                document.querySelectorAll('.dropdown-toggle').forEach(toggle => {
+                    toggle.classList.remove('active');
+                    toggle.nextElementSibling.classList.remove('show');
+                });
+            }
+        });
+        
+        // Rotation control
+        const rotationDropdown = document.getElementById('rotation-dropdown');
+        const rotationItems = rotationDropdown.querySelectorAll('.dropdown-item');
+        
+        rotationItems.forEach(item => {
+            item.addEventListener('click', function() {
+                rotationItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                isRotating = this.dataset.value === 'on';
+                controls.autoRotate = isRotating;
+                
+                rotationDropdown.querySelector('.dropdown-toggle').textContent = `Rotation: ${this.textContent}`;
+                rotationDropdown.querySelector('.dropdown-toggle').classList.remove('active');
+                rotationDropdown.querySelector('.dropdown-menu').classList.remove('show');
+            });
+        });
+        
+        // Color control
+        const colorDropdown = document.getElementById('color-dropdown');
+        const colorItems = colorDropdown.querySelectorAll('.dropdown-item');
+        const colors = [0x000000, 0x0088ff, 0xff3300, 0x00cc88, 0xffcc00];
+        const colorNames = ['Black', 'Blue', 'Red', 'Green', 'Gold'];
+        let colorIndex = 0;
+        
+        colorItems.forEach(item => {
+            item.addEventListener('click', function() {
+                colorItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                colorIndex = parseInt(this.dataset.value);
+                
+                logoGroup.traverse((child) => {
+                    if (child.isMesh) {
+                        child.material.color.set(colors[colorIndex]);
+                    }
+                });
+                
+                if (particles) {
+                    particles.material.color.set(colors[colorIndex]);
+                }
+                
+                colorDropdown.querySelector('.dropdown-toggle').textContent = `Color: ${colorNames[colorIndex]}`;
+                colorDropdown.querySelector('.dropdown-toggle').classList.remove('active');
+                colorDropdown.querySelector('.dropdown-menu').classList.remove('show');
+                
+                // Reapply current texture to update with new color
+                if (textureIndex > 0) {
+                    applyTexture(textures[textureIndex]);
+                }
+            });
+        });
+        
+        // Texture control
+        const textureDropdown = document.getElementById('texture-dropdown');
+        const textureItems = textureDropdown.querySelectorAll('.dropdown-item');
+        let textureIndex = 0;
+        
+        textureItems.forEach(item => {
+            item.addEventListener('click', function() {
+                textureItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                textureIndex = parseInt(this.dataset.value);
+                const textureOption = textures[textureIndex];
+                
+                applyTexture(textureOption);
+                
+                textureDropdown.querySelector('.dropdown-toggle').textContent = `Texture: ${textureOption.name}`;
+                textureDropdown.querySelector('.dropdown-toggle').classList.remove('active');
+                textureDropdown.querySelector('.dropdown-menu').classList.remove('show');
+            });
+        });
+        
+        // Background control
+        const backgroundDropdown = document.getElementById('background-dropdown');
+        const backgroundItems = backgroundDropdown.querySelectorAll('.dropdown-item');
+        let bgIndex = 0;
+        
+        backgroundItems.forEach(item => {
+            item.addEventListener('click', function() {
+                backgroundItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                bgIndex = parseInt(this.dataset.value);
+                const bg = backgrounds[bgIndex];
+                
+                // Remove grid if it exists
+                removeGrid();
+                
+                // Remove fog if it exists
+                removeFog();
+                
+                if (bg.gradient) {
+                    setGradientBackground(bg.gradient);
+                } else if (bg.skybox) {
+                    scene.background = createSkybox(bg.skybox);
+                    // Reset UI contrast for skyboxes (always use light text)
+                    document.body.classList.remove('light-mode');
+                } else if (bg.grid) {
+                    scene.background = new THREE.Color(0x000000);
+                    createGrid();
+                    // Apply current lighting tint
+                    if (window.currentTint) {
+                        updateBackgroundTint(window.currentTint.color, window.currentTint.intensity);
+                    }
+                } else if (bg.fog) {
+                    scene.background = new THREE.Color(bg.fog);
+                    addFog(bg.fog);
+                    // Apply current lighting tint
+                    if (window.currentTint) {
+                        updateBackgroundTint(window.currentTint.color, window.currentTint.intensity);
+                    }
+                } else {
+                    scene.background = new THREE.Color(bg.color);
+                    // Apply current lighting tint
+                    if (window.currentTint) {
+                        updateBackgroundTint(window.currentTint.color, window.currentTint.intensity);
+                    }
+                }
+                
+                backgroundDropdown.querySelector('.dropdown-toggle').textContent = `Background: ${bg.name}`;
+                backgroundDropdown.querySelector('.dropdown-toggle').classList.remove('active');
+                backgroundDropdown.querySelector('.dropdown-menu').classList.remove('show');
+            });
+        });
+        
+        // Effects control
+        const effectsDropdown = document.getElementById('effects-dropdown');
+        const effectsItems = effectsDropdown.querySelectorAll('.dropdown-item');
+        let activeEffects = {
+            particles: false,
+            wireframe: false
+        };
+        
+        effectsItems.forEach(item => {
+            item.addEventListener('click', function() {
+                const effect = this.dataset.value;
+                this.classList.toggle('active');
+                
+                if (effect === 'particles') {
+                    if (!activeEffects.particles) {
+                        createParticles();
+                        activeEffects.particles = true;
+                    } else {
+                        scene.remove(particles);
+                        particles = null;
+                        activeEffects.particles = false;
+                    }
+                } else if (effect === 'wireframe') {
+                    logoGroup.traverse((child) => {
+                        if (child.isMesh) {
+                            child.material.wireframe = !child.material.wireframe;
+                        }
+                    });
+                    activeEffects.wireframe = !activeEffects.wireframe;
+                }
+                
+                // Update dropdown title to show active effects
+                const activeEffectsList = Object.entries(activeEffects)
+                    .filter(([_, active]) => active)
+                    .map(([name, _]) => name.charAt(0).toUpperCase() + name.slice(1));
+                
+                effectsDropdown.querySelector('.dropdown-toggle').textContent = 
+                    activeEffectsList.length > 0 ? `Effects: ${activeEffectsList.join(', ')}` : 'Effects';
+            });
+        });
+        
+        // Hide info after 5 seconds
+        setTimeout(() => {
+            const info = document.getElementById('info');
+            info.style.opacity = '0';
+            
+            // Show on hover
+            info.addEventListener('mouseenter', () => {
+                info.style.opacity = '0.8';
+            });
+            
+            info.addEventListener('mouseleave', () => {
+                info.style.opacity = '0';
+            });
+        }, 5000);
+        
+        // Reset view function
+        function resetView() {
+            // Calculate the bounding box of the entire scene
+            const bbox = new THREE.Box3().setFromObject(logoGroup);
+            const center = bbox.getCenter(new THREE.Vector3());
+            const size = bbox.getSize(new THREE.Vector3());
+            
+            // Adjust camera to frame the logo properly
+            const maxDim = Math.max(size.x, size.y);
+            const fov = camera.fov * (Math.PI / 180);
+            let cameraZ = Math.abs(maxDim / 2 / Math.tan(fov / 2));
+            
+            // Add some padding
+            cameraZ *= 1.5;
+            
+            // Update camera position with animation
+            gsap.to(camera.position, {
+                z: cameraZ,
+                y: 0,
+                x: 0,
+                duration: 1
+            });
+            
+            gsap.to(controls.target, {
+                x: center.x,
+                y: center.y,
+                z: center.z,
+                duration: 1,
+                onUpdate: () => controls.update()
+            });
+        }
+        
+        // Add event listener for reset button
+        document.getElementById('reset-view').addEventListener('click', resetView);
+        
+        // Textures
+        const textures = [
+            { name: 'None', type: 'basic' },
+            { name: 'Metal', type: 'material', metalness: 0.9, roughness: 0.1 },
+            { name: 'Chrome', type: 'material', metalness: 1.0, roughness: 0.0 },
+            { name: 'Glass', type: 'special', material: 'glass' },
+            { name: 'Hologram', type: 'special', material: 'hologram' },
+            { name: 'Matte', type: 'material', metalness: 0.0, roughness: 0.9 },
+            { name: 'Glossy', type: 'material', metalness: 0.2, roughness: 0.2 },
+            { name: 'Carbon', type: 'texture', url: 'https://threejs.org/examples/textures/carbon/Carbon.png' },
+            { name: 'Wood', type: 'texture', url: 'https://threejs.org/examples/textures/hardwood2_diffuse.jpg' },
+            { name: 'Marble', type: 'texture', url: 'https://threejs.org/examples/textures/marble.jpg' },
+            { name: 'Lava', type: 'texture', url: 'https://threejs.org/examples/textures/lava/lavatile.jpg' },
+            { name: 'Water', type: 'texture', url: 'https://threejs.org/examples/textures/water.jpg' },
+            { name: 'Brick', type: 'texture', url: 'https://threejs.org/examples/textures/brick_diffuse.jpg' }
+        ];
+        
+        let loadedTextures = {};
+        
+        // Function to create skybox
+        function createSkybox(type) {
+            if (skyboxes[type]) return skyboxes[type];
+            
+            // Show loading indicator
+            const loadingBg = document.getElementById('loading-bg');
+            loadingBg.style.display = 'block';
+            
+            const loader = new THREE.CubeTextureLoader();
+            let urls;
+            
+            switch(type) {
+                case 'pisa':
+                    urls = [
+                        'https://threejs.org/examples/textures/cube/pisa/px.png',
+                        'https://threejs.org/examples/textures/cube/pisa/nx.png',
+                        'https://threejs.org/examples/textures/cube/pisa/py.png',
+                        'https://threejs.org/examples/textures/cube/pisa/ny.png',
+                        'https://threejs.org/examples/textures/cube/pisa/pz.png',
+                        'https://threejs.org/examples/textures/cube/pisa/nz.png'
+                    ];
+                    break;
+                case 'space':
+                    urls = [
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_px.jpg',
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_nx.jpg',
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_py.jpg',
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_ny.jpg',
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_pz.jpg',
+                        'https://threejs.org/examples/textures/cube/MilkyWay/dark-s_nz.jpg'
+                    ];
+                    break;
+                case 'bridge':
+                    urls = [
+                        'https://threejs.org/examples/textures/cube/Bridge2/posx.jpg',
+                        'https://threejs.org/examples/textures/cube/Bridge2/negx.jpg',
+                        'https://threejs.org/examples/textures/cube/Bridge2/posy.jpg',
+                        'https://threejs.org/examples/textures/cube/Bridge2/negy.jpg',
+                        'https://threejs.org/examples/textures/cube/Bridge2/posz.jpg',
+                        'https://threejs.org/examples/textures/cube/Bridge2/negz.jpg'
+                    ];
+                    break;
+                default:
+                    urls = [
+                        'https://threejs.org/examples/textures/cube/pisa/px.png',
+                        'https://threejs.org/examples/textures/cube/pisa/nx.png',
+                        'https://threejs.org/examples/textures/cube/pisa/py.png',
+                        'https://threejs.org/examples/textures/cube/pisa/ny.png',
+                        'https://threejs.org/examples/textures/cube/pisa/pz.png',
+                        'https://threejs.org/examples/textures/cube/pisa/nz.png'
+                    ];
+            }
+            
+            const texture = loader.load(urls, 
+                // onLoad callback
+                function() {
+                    // Hide loading indicator
+                    loadingBg.style.display = 'none';
+                },
+                // onProgress callback
+                undefined,
+                // onError callback
+                function(err) {
+                    console.error('Error loading skybox:', err);
+                    loadingBg.style.display = 'none';
+                }
+            );
+            skyboxes[type] = texture;
+            return texture;
+        }
+        
+        // Function to set gradient background
+        function setGradientBackground(colors) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 2;
+            canvas.height = 512;
+            const context = canvas.getContext('2d');
+            
+            // Create gradient
+            const gradient = context.createLinearGradient(0, 0, 0, 512);
+            colors.forEach((color, index) => {
+                gradient.addColorStop(index / (colors.length - 1), color);
+            });
+            
+            context.fillStyle = gradient;
+            context.fillRect(0, 0, 2, 512);
+            
+            // Apply tint if there is one
+            if (window.currentTint && window.currentTint.intensity > 0) {
+                // Get image data
+                const imageData = context.getImageData(0, 0, 2, 512);
+                const data = imageData.data;
+                
+                // Convert tint color to RGB
+                const tintColor = new THREE.Color(window.currentTint.color);
+                const r = Math.floor(tintColor.r * 255);
+                const g = Math.floor(tintColor.g * 255);
+                const b = Math.floor(tintColor.b * 255);
+                
+                // Apply tint to each pixel
+                for (let i = 0; i < data.length; i += 4) {
+                    data[i] = Math.floor(data[i] * (1 - window.currentTint.intensity) + r * window.currentTint.intensity);
+                    data[i + 1] = Math.floor(data[i + 1] * (1 - window.currentTint.intensity) + g * window.currentTint.intensity);
+                    data[i + 2] = Math.floor(data[i + 2] * (1 - window.currentTint.intensity) + b * window.currentTint.intensity);
+                }
+                
+                // Put the modified image data back
+                context.putImageData(imageData, 0, 0);
+            }
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            scene.background = texture;
+            
+            // Update UI contrast
+            updateUIContrast();
+        }
+        
+        // Function to create grid background
+        function createGrid() {
+            if (gridHelper) {
+                scene.add(gridHelper);
+                return;
+            }
+            
+            gridHelper = new THREE.GridHelper(1000, 50, 0x0088ff, 0x444444);
+            gridHelper.position.y = -50;
+            scene.add(gridHelper);
+        }
+        
+        // Function to remove grid
+        function removeGrid() {
+            if (gridHelper) {
+                scene.remove(gridHelper);
+            }
+        }
+        
+        // Function to add fog
+        function addFog(color) {
+            scene.fog = new THREE.FogExp2(color, 0.002);
+            hasFog = true;
+        }
+        
+        // Function to remove fog
+        function removeFog() {
+            if (hasFog) {
+                scene.fog = null;
+                hasFog = false;
+            }
+        }
+        
+        // Textures
+        let skyboxes = {};
+        let gridHelper = null;
+        let hasFog = false;
+        
+        // Background options
+        const backgrounds = [
+            { color: 0x121212, name: 'Dark' },
+            { color: 0xffffff, name: 'Light' },
+            { color: 0x1a1a2e, name: 'Navy' },
+            { color: 0x222222, name: 'Charcoal' },
+            { gradient: ['#1a2a6c', '#b21f1f', '#fdbb2d'], name: 'Sunset' },
+            { gradient: ['#2c3e50', '#4ca1af'], name: 'Deep Blue' },
+            { gradient: ['#8360c3', '#2ebf91'], name: 'Emerald' },
+            { gradient: ['#000000', '#434343'], name: 'Noir' },
+            { gradient: ['#3f2b96', '#a8c0ff'], name: 'Royal' },
+            { grid: true, name: 'Grid' },
+            { fog: 0x88ccff, name: 'Blue Fog' },
+            { fog: 0xff8888, name: 'Red Fog' },
+            { fog: 0x88ff88, name: 'Green Fog' },
+            { skybox: 'pisa', name: 'Pisa' },
+            { skybox: 'space', name: 'Space' },
+            { skybox: 'bridge', name: 'Bridge' }
+        ];
+        
+        // Function to apply texture
+        async function applyTexture(textureOption) {
+            // Reset to original material properties
+            logoGroup.traverse(async (child) => {
+                if (child.isMesh) {
+                    let newMaterial;
+                    
+                    // Special materials
+                    if (textureOption.type === 'special') {
+                        if (textureOption.material === 'glass') {
+                            // Create glass material
+                            newMaterial = new THREE.MeshPhysicalMaterial({
+                                color: colors[colorIndex] === 0x000000 ? 0xffffff : colors[colorIndex],
+                                metalness: 0.0,
+                                roughness: 0.1,
+                                transmission: 0.9, // Add transparency
+                                transparent: true,
+                                opacity: 0.6,
+                                reflectivity: 0.5,
+                                clearcoat: 1.0,
+                                clearcoatRoughness: 0.1,
+                                side: THREE.DoubleSide
+                            });
+                            
+                            // Add environment map for reflections
+                            try {
+                                if (!skyboxes['bridge']) {
+                                    const envMap = await createSkybox('bridge');
+                                    newMaterial.envMap = envMap;
+                                    newMaterial.envMapIntensity = 1;
+                                } else {
+                                    newMaterial.envMap = skyboxes['bridge'];
+                                    newMaterial.envMapIntensity = 1;
+                                }
+                            } catch (error) {
+                                console.error('Failed to load environment map:', error);
+                            }
+                        } else if (textureOption.material === 'hologram') {
+                            // Create holographic material
+                            newMaterial = new THREE.MeshPhysicalMaterial({
+                                color: 0x00ffff,
+                                metalness: 0.0,
+                                roughness: 0.2,
+                                transmission: 0.95,
+                                transparent: true,
+                                opacity: 0.5,
+                                emissive: 0x00ffff,
+                                emissiveIntensity: 0.5,
+                                side: THREE.DoubleSide
+                            });
+                            
+                            // Add holographic edge glow effect
+                            const edgeGlow = new THREE.Mesh(
+                                child.geometry.clone(),
+                                new THREE.MeshBasicMaterial({
+                                    color: 0x00ffff,
+                                    transparent: true,
+                                    opacity: 0.3,
+                                    side: THREE.BackSide
+                                })
+                            );
+                            
+                            edgeGlow.scale.multiplyScalar(1.05);
+                            edgeGlow.position.copy(child.position);
+                            edgeGlow.rotation.copy(child.rotation);
+                            
+                            // Remove any existing edge glow
+                            child.parent.children.forEach(c => {
+                                if (c.userData && c.userData.isEdgeGlow) {
+                                    child.parent.remove(c);
+                                }
+                            });
+                            
+                            // Add new edge glow
+                            edgeGlow.userData = { isEdgeGlow: true };
+                            child.parent.add(edgeGlow);
+                            
+                            // Add animation for hologram
+                            if (!child.userData.hologramAnimation) {
+                                child.userData.hologramAnimation = setInterval(() => {
+                                    if (child.material && child.material.emissiveIntensity) {
+                                        child.material.emissiveIntensity = 0.3 + Math.sin(Date.now() * 0.003) * 0.2;
+                                        child.material.opacity = 0.4 + Math.sin(Date.now() * 0.002) * 0.1;
+                                        
+                                        // Update edge glow
+                                        const edgeGlow = child.parent.children.find(c => c.userData && c.userData.isEdgeGlow);
+                                        if (edgeGlow) {
+                                            edgeGlow.material.opacity = 0.2 + Math.sin(Date.now() * 0.002) * 0.1;
+                                        }
+                                    }
+                                }, 16);
+                            }
+                        }
+                    } else {
+                        // Clear any hologram animation if it exists
+                        if (child.userData.hologramAnimation) {
+                            clearInterval(child.userData.hologramAnimation);
+                            child.userData.hologramAnimation = null;
+                            
+                            // Remove any edge glow
+                            child.parent.children.forEach(c => {
+                                if (c.userData && c.userData.isEdgeGlow) {
+                                    child.parent.remove(c);
+                                }
+                            });
+                        }
+                        
+                        // Create a new material based on the original
+                        newMaterial = window.originalMaterial.clone();
+                        newMaterial.color.set(colors[colorIndex]);
+                        
+                        if (textureOption.type === 'basic') {
+                            // Basic material with current color
+                            newMaterial.metalness = 0.3;
+                            newMaterial.roughness = 0.4;
+                            newMaterial.map = null;
+                            newMaterial.normalMap = null;
+                            newMaterial.bumpMap = null;
+                            newMaterial.envMap = null;
+                        } 
+                        else if (textureOption.type === 'material') {
+                            // Adjust material properties
+                            newMaterial.metalness = textureOption.metalness;
+                            newMaterial.roughness = textureOption.roughness;
+                            newMaterial.map = null;
+                            newMaterial.normalMap = null;
+                            newMaterial.bumpMap = null;
+                            
+                            // For metal or chrome, add environment map
+                            if (textureOption.name === 'Metal' || textureOption.name === 'Chrome') {
+                                try {
+                                    if (!skyboxes['pisa']) {
+                                        const envMap = await createSkybox('pisa');
+                                        newMaterial.envMap = envMap;
+                                        newMaterial.envMapIntensity = textureOption.name === 'Chrome' ? 1.5 : 1;
+                                    } else {
+                                        newMaterial.envMap = skyboxes['pisa'];
+                                        newMaterial.envMapIntensity = textureOption.name === 'Chrome' ? 1.5 : 1;
+                                    }
+                                } catch (error) {
+                                    console.error('Failed to load environment map:', error);
+                                }
+                            }
+                        } 
+                        else if (textureOption.type === 'texture') {
+                            try {
+                                // Load and apply texture
+                                const texture = await loadTexture(textureOption.url);
+                                newMaterial.map = texture;
+                                
+                                // Reset other maps
+                                newMaterial.normalMap = null;
+                                newMaterial.bumpMap = null;
+                                
+                                // For some textures, add normal maps or bump maps
+                                if (textureOption.name === 'Carbon') {
+                                    const normalMap = await loadTexture('https://threejs.org/examples/textures/carbon/Carbon_normal.png');
+                                    newMaterial.normalMap = normalMap;
+                                    newMaterial.normalScale = new THREE.Vector2(1, 1);
+                                }
+                                else if (textureOption.name === 'Brick') {
+                                    const normalMap = await loadTexture('https://threejs.org/examples/textures/brick_normal.jpg');
+                                    newMaterial.normalMap = normalMap;
+                                    newMaterial.normalScale = new THREE.Vector2(1, 1);
+                                }
+                                else if (textureOption.name === 'Lava') {
+                                    const bumpMap = await loadTexture('https://threejs.org/examples/textures/lava/cloud.png');
+                                    newMaterial.bumpMap = bumpMap;
+                                    newMaterial.bumpScale = 0.02;
+                                    
+                                    // Make lava glow
+                                    newMaterial.emissive = new THREE.Color(0xff5500);
+                                    newMaterial.emissiveIntensity = 0.5;
+                                }
+                                else if (textureOption.name === 'Water') {
+                                    // Make water more reflective
+                                    newMaterial.metalness = 0.5;
+                                    newMaterial.roughness = 0.2;
+                                    
+                                    try {
+                                        if (!skyboxes['bridge']) {
+                                            const envMap = await createSkybox('bridge');
+                                            newMaterial.envMap = envMap;
+                                            newMaterial.envMapIntensity = 0.5;
+                                        } else {
+                                            newMaterial.envMap = skyboxes['bridge'];
+                                            newMaterial.envMapIntensity = 0.5;
+                                        }
+                                    } catch (error) {
+                                        console.error('Failed to load environment map:', error);
+                                    }
+                                }
+                            } catch (error) {
+                                console.error('Failed to load texture:', error);
+                            }
+                        }
+                    }
+                    
+                    // Apply the new material
+                    child.material = newMaterial;
+                    child.material.needsUpdate = true;
+                }
+            });
+        }
+        
+        // Function to load texture
+        function loadTexture(url) {
+            if (loadedTextures[url]) return loadedTextures[url];
+            
+            // Show loading indicator
+            const loadingBg = document.getElementById('loading-bg');
+            loadingBg.style.display = 'block';
+            
+            const loader = new THREE.TextureLoader();
+            
+            return new Promise((resolve, reject) => {
+                loader.load(
+                    url,
+                    // onLoad callback
+                    function(texture) {
+                        // Hide loading indicator
+                        loadingBg.style.display = 'none';
+                        
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        texture.repeat.set(2, 2);
+                        
+                        loadedTextures[url] = texture;
+                        resolve(texture);
+                    },
+                    // onProgress callback
+                    undefined,
+                    // onError callback
+                    function(err) {
+                        console.error('Error loading texture:', err);
+                        loadingBg.style.display = 'none';
+                        reject(err);
+                    }
+                );
+            });
+        }
+        
+        // Lighting control
+        const lightingDropdown = document.getElementById('lighting-dropdown');
+        const lightingItems = lightingDropdown.querySelectorAll('.dropdown-item');
+        let currentLighting = 'standard';
+        
+        lightingItems.forEach(item => {
+            item.addEventListener('click', function() {
+                lightingItems.forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentLighting = this.dataset.value;
+                setupLighting(currentLighting);
+                
+                lightingDropdown.querySelector('.dropdown-toggle').textContent = `Lighting: ${this.textContent}`;
+                lightingDropdown.querySelector('.dropdown-toggle').classList.remove('active');
+                lightingDropdown.querySelector('.dropdown-menu').classList.remove('show');
+            });
+        });
+    </script>
+</body>
+</html> 
